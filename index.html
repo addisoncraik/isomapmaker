@@ -65,7 +65,7 @@
         transform: translateX(-50%);
         border-radius: 20px;
         padding: 1%;
-        width:30vw;
+        width:50vw;
         text-align: center;
     }
     
@@ -128,6 +128,7 @@
         <button onclick="switchTile(1)">Grass</button>
         <button onclick="switchTile(2)">Water</button>
         <button onclick="switchTile(3)">Sand</button>
+        <button onclick="switchTile(4)">Stone</button>
         <a href="">+ Create More Tiles +</a>
     </div>
 </div>
@@ -139,6 +140,10 @@
     <button>Zoom Out</button>
     <button onclick="preview()">Preview</button>
     <button onclick="download()"><a href="" download="" id="download">Download</a></button>
+    <button onclick="perspective = 1; tileSize.h = 80; origin = {x:canvas.width/tileSize.w/2,y:canvas.height/tileSize.h/2-worldSize.h/2}; drawWorld()">Top Down</button>
+    <button onclick="perspective = 0; tileSize.h = 40; origin = {x:canvas.width/tileSize.w/2,y:canvas.height/tileSize.h/2-worldSize.h/2}; drawWorld()">Isometric</button>
+    <button onclick="selected = []; drawWorld()">Deselect</button>
+    <button onclick="invertSelect()">Invert</button>
 </div>
 <script>
     let canvas = document.getElementById("game")
@@ -150,7 +155,8 @@
         {top:["#fff","#000"],sides:["#fff","#fff","#000"],height:1},
         {top:["#28cb48","#119f2d"],sides:["#bf8d1d","#d19d28","#a87910"],height:1.2},
         {top:["#64d3fc","#44a6cb"],sides:["#39c6fa","#4ecdfc","#44a6cb"],height:1},
-        {top:["#F3CD13","#C4A010"],sides:["#E3B912","#F3C613","#C4A010"],height:1.1}
+        {top:["#F3CD13","#C4A010"],sides:["#E3B912","#F3C613","#C4A010"],height:1.1},
+        {top:["#d0d0d0","#a5a5a5"],sides:["#bebebe","#d8d8d8","#a5a5a5"],height:1.1}
     ]
     
     let worldSize = {w:10,h:10};
@@ -165,7 +171,10 @@
     let canEdit = 1;
     let diff = 0;
     let highlighted = 0;
+    let perspective = 0;
     let selected = [];
+    let canSelect = 0;
+    let quickSelect = 0;
     
     function generateWorld(){
         for(i=0;i<worldSize.w*worldSize.h;i++){
@@ -187,7 +196,14 @@
             for(x=0;x<worldSize.w;x++){
                 
                 let currentTile = world[y*worldSize.w+x]
-                let height = currentTile.height*tileSize.w
+                let height;
+                
+                if(perspective == 0){
+                    height = currentTile.height*tileSize.w;
+                }else{
+                    height = 0;
+                }
+                
                 let pos = toScreen(x,y,height)
                 
                 
@@ -245,7 +261,13 @@
         }
         
         if(highlighted && canEdit){
-            let pos = toScreen(highlighted[0],highlighted[1],highlighted[2]*tileSize.w)
+            let pos;
+                
+            if(perspective == 0){
+                pos = toScreen(highlighted[0],highlighted[1],highlighted[2]*tileSize.w);
+            }else{
+                pos = toScreen(highlighted[0],highlighted[1],0);
+            }
             
             ctx.beginPath()
             ctx.lineWidth = 2
@@ -260,7 +282,13 @@
         
         if(selected.length > 0){
             for(i = 0; i < selected.length; i++){
-                let pos = toScreen(selected[i][0],selected[i][1],selected[i][2]*tileSize.w)
+                let pos;
+                
+                if(perspective == 0){
+                    pos = toScreen(selected[i][0],selected[i][1],selected[i][2]*tileSize.w);
+                }else{
+                    pos = toScreen(selected[i][0],selected[i][1],0);
+                }
             
                 ctx.beginPath()
                 ctx.lineWidth = 2
@@ -285,11 +313,29 @@
             origin = {x:cursor.x/tileSize.w-diff.x,y:cursor.y/tileSize.h-diff.y}
         }
         
+        if(canEdit && highlighted && canSelect && quickSelect){
+            for(i=0;i<selected.length;i++){
+                if(highlighted[0] == selected[i][0] && highlighted[1] == selected[i][1]){
+                    if(quickSelect == 2){
+                        selected.splice(i,1)
+                    }
+                    
+                     break;
+                }
+                
+                if(i == selected.length-1){
+                    selected.push(highlighted);
+                    heightSlider.value = highlighted[2]*10
+                }
+            }
+        }
+        
         drawWorld()    
     }
     
     canvas.onmousedown = function(){
         diff = {x:cursor.x/tileSize.w-origin.x,y:cursor.y/tileSize.h-origin.y};
+        canSelect = 1;
         drawWorld()
         
         if(canEdit && highlighted){
@@ -319,6 +365,7 @@
     
     canvas.onmouseup = function(){
         diff = 0;
+        canSelect = 0;
     }
     
     document.onkeydown = (e) => {
@@ -339,8 +386,28 @@
             origin.y = tempOrigin.y/tileSize.h
             drawWorld()
         }
+        
+        if(e.which == 16 && canSelect){
+            quickSelect = 1;
+        }
+        
+        if(e.which == 16){
+            quickSelect = 1;
+        }
+        
+        if(e.which == 18){
+            quickSelect = 2;
+        }
+        
+        console.log(e.which)
     }
     
+    document.onkeyup = (e) => {
+        if(e.which == 16 || e.which == 18){
+            quickSelect = 0;
+        }
+        
+    }
     
     //window.onresize = function(){
         canvas.width = window.innerWidth*0.8
@@ -391,6 +458,31 @@
         document.getElementById("download").setAttribute("href", canvas.toDataURL())
         
         canEdit = 1;
+    }
+    
+    function invertSelect(){
+        let newSelected = [];
+        
+        for(let y=0;y<worldSize.h;y++){
+            for(let x=0;x<worldSize.w;x++){
+                let isSelected = 0;
+                for(let i=0;i<selected.length;i++){
+                    if(selected[i][0] == x && selected[i][1] == y){
+                        isSelected = 1;
+                        break;
+                    }
+                }
+                if(!isSelected){
+                    newSelected.push([x,y,world[y*worldSize.w+x].height])
+                }
+            }
+        }
+        selected = newSelected;
+        drawWorld()
+    }
+    
+    function switchPerspective(){
+        
     }
     
 </script>
