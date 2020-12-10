@@ -136,12 +136,12 @@
 <div id="toolBar">
     <button onclick="canEdit = 0; canvas.style.cursor = 'move'">Move</button>
     <button onclick="canEdit = 1; canvas.style.cursor = 'auto'">Edit</button>
-    <button>Zoom In</button>
-    <button>Zoom Out</button>
+    <button onclick="zoom(1)">Zoom In</button>
+    <button onclick="zoom(0)">Zoom Out</button>
     <button onclick="preview()">Preview</button>
     <button onclick="download()"><a href="" download="" id="download">Download</a></button>
-    <button onclick="perspective = 1; tileSize.h = 80; origin = {x:canvas.width/tileSize.w/2,y:canvas.height/tileSize.h/2-worldSize.h/2}; drawWorld()">Top Down</button>
-    <button onclick="perspective = 0; tileSize.h = 40; origin = {x:canvas.width/tileSize.w/2,y:canvas.height/tileSize.h/2-worldSize.h/2}; drawWorld()">Isometric</button>
+    <button onclick="perspective = 1; tileSize.h = tileSize.w; origin = {x:canvas.width/tileSize.w/2,y:canvas.height/tileSize.h/2-worldSize.h/2}; drawWorld()">Top Down</button>
+    <button onclick="perspective = 0; tileSize.h = tileSize.w/2; origin = {x:canvas.width/tileSize.w/2,y:canvas.height/tileSize.h/2-worldSize.h/2}; drawWorld()">Isometric</button>
     <button onclick="selected = []; drawWorld()">Deselect</button>
     <button onclick="invertSelect()">Invert</button>
 </div>
@@ -370,21 +370,11 @@
     
     document.onkeydown = (e) => {
         if(e.which == 187){
-            let tempOrigin = {x:origin.x*tileSize.w,y:origin.y*tileSize.h}
-            tileSize.w += 20;
-            tileSize.h = tileSize.w/2
-            origin.x = tempOrigin.x/tileSize.w
-            origin.y = tempOrigin.y/tileSize.h
-            drawWorld()
+            zoom(1)
         }
         
         if(e.which == 189 && tileSize.w > 30){
-            let tempOrigin = {x:origin.x*tileSize.w,y:origin.y*tileSize.h}
-            tileSize.w -= 20;
-            tileSize.h = tileSize.w/2
-            origin.x = tempOrigin.x/tileSize.w
-            origin.y = tempOrigin.y/tileSize.h
-            drawWorld()
+            zoom(0)
         }
         
         if(e.which == 16 && canSelect){
@@ -483,6 +473,32 @@
     
     function switchPerspective(){
         
+    }
+    
+    function zoom(z){
+        if(z){
+            let tempOrigin = {x:origin.x*tileSize.w,y:origin.y*tileSize.h}
+            tileSize.w += 20;
+            if(perspective){
+                tileSize.h = tileSize.w
+            }else{
+                tileSize.h = tileSize.w/2
+            }
+            origin.x = tempOrigin.x/tileSize.w
+            origin.y = tempOrigin.y/tileSize.h
+            drawWorld()
+        }else{
+            let tempOrigin = {x:origin.x*tileSize.w,y:origin.y*tileSize.h}
+            tileSize.w -= 20;
+            if(perspective){
+                tileSize.h = tileSize.w
+            }else{
+                tileSize.h = tileSize.w/2
+            }
+            origin.x = tempOrigin.x/tileSize.w
+            origin.y = tempOrigin.y/tileSize.h
+            drawWorld()
+        }
     }
     
 </script>
