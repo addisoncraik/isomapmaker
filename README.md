@@ -1,2 +1,2 @@
-# isomapmaker
-Isometric map maker
+# Isomapmaker
+Isometric map maker https://craiky.github.io/isomapmaker
