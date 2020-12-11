@@ -112,9 +112,17 @@
         display: block;
         margin-top:5%;
     }
+    
+    #zoom{
+        position: absolute;
+        top:2vh;
+        left:2vw;
+        background: white;
+        padding: 1%;
+    }
 </style>
 
-<canvas id="game"></canvas>
+<canvas id="game"  oncontextmenu="return false;"></canvas>
     
 <div id="edit">
     <p>Height:</p>
@@ -134,17 +142,21 @@
 </div>
     
 <div id="toolBar">
-    <button onclick="canEdit = 0; canvas.style.cursor = 'move'">Move</button>
-    <button onclick="canEdit = 1; canvas.style.cursor = 'auto'">Edit</button>
     <button onclick="zoom(1)">Zoom In</button>
     <button onclick="zoom(0)">Zoom Out</button>
     <button onclick="preview()">Preview</button>
     <button onclick="download()"><a href="" download="" id="download">Download</a></button>
-    <button onclick="perspective = 1; tileSize.h = tileSize.w; origin = {x:canvas.width/tileSize.w/2,y:canvas.height/tileSize.h/2-worldSize.h/2}; drawWorld()">Top Down</button>
-    <button onclick="perspective = 0; tileSize.h = tileSize.w/2; origin = {x:canvas.width/tileSize.w/2,y:canvas.height/tileSize.h/2-worldSize.h/2}; drawWorld()">Isometric</button>
+    <button onclick="switchPerspective()">Switch View</button>
     <button onclick="selected = []; drawWorld()">Deselect</button>
     <button onclick="invertSelect()">Invert</button>
     <button onclick="rotate()">Rotate</button>
+</div>
+    
+<div id="zoom">
+    <p>Zoom Speed</p>
+    <button onclick="if(zoomSpeed < 0.8){zoomSpeed += 0.01}">+</button>
+    <button onclick="if(zoomSpeed > 0.01){zoomSpeed -= 0.01}">-</button>
+    <button onclick="invertZoom = !invertZoom">Invert Zoom</button>
 </div>
 <script>
     let canvas = document.getElementById("game")
@@ -176,6 +188,9 @@
     let selected = [];
     let canSelect = 0;
     let quickSelect = 0;
+    let canChangeHeight = 0;
+    let invertZoom = 0;
+    let zoomSpeed = 0.02;
     
     function generateWorld(){
         for(i=0;i<worldSize.w*worldSize.h;i++){
@@ -306,12 +321,15 @@
     }
     
     
-    canvas.onmousemove = function(e){
+    canvas.onmousemove = (e) => {
         cursor.x = e.clientX-canvas.getBoundingClientRect().left;
         cursor.y = e.clientY-canvas.getBoundingClientRect().top;
         
-        if(diff && !canEdit){
+        if(diff && e.which == 3){
+            canvas.style.cursor = "move"
             origin = {x:cursor.x/tileSize.w-diff.x,y:cursor.y/tileSize.h-diff.y}
+        }else{
+            canvas.style.cursor = "auto"
         }
         
         if(canEdit && highlighted && canSelect && quickSelect){
@@ -334,12 +352,13 @@
         drawWorld()    
     }
     
-    canvas.onmousedown = function(){
+    canvas.onmousedown = (e) => {
         diff = {x:cursor.x/tileSize.w-origin.x,y:cursor.y/tileSize.h-origin.y};
+        e.preventDefault()
         canSelect = 1;
         drawWorld()
         
-        if(canEdit && highlighted){
+        if(e.which == 1 && highlighted && canEdit){
             if(selected.length == 0){
                 selected.push(highlighted);
                 heightSlider.value = highlighted[2]*10
@@ -357,7 +376,7 @@
                     }
                 }
             }
-        }else if(canEdit && highlighted == 0){
+        }else if(e.which == 1 && highlighted == 0 && canEdit){
             selected = []
         }
         
@@ -367,6 +386,7 @@
     canvas.onmouseup = function(){
         diff = 0;
         canSelect = 0;
+        canvas.style.cursor = "auto"
     }
     
     document.onkeydown = (e) => {
@@ -376,10 +396,6 @@
         
         if(e.which == 189 && tileSize.w > 30){
             zoom(0)
-        }
-        
-        if(e.which == 16 && canSelect){
-            quickSelect = 1;
         }
         
         if(e.which == 16){
@@ -394,12 +410,39 @@
             rotate()
         }
         
+        if(e.which == 68){
+            selected = [];
+            drawWorld()
+        }
+        
+        if(e.which == 73){
+            invertSelect()
+        }
+        
+        for(let i=0;i<tiles.length;i++){
+            if(e.which == Math.min(57, 49 + i)){
+                switchTile(i)
+            }
+        }
+        
+        if(e.which == 72){
+            canChangeHeight = 1;
+        }
+        
+        if(e.which == 9){
+            e.preventDefault()
+            switchPerspective()
+        }
         console.log(e.which)
     }
     
     document.onkeyup = (e) => {
         if(e.which == 16 || e.which == 18){
             quickSelect = 0;
+        }
+        
+        if(e.which == 72){
+            canChangeHeight = 0;
         }
         
     }
@@ -477,13 +520,21 @@
     }
     
     function switchPerspective(){
+        perspective = !perspective; 
         
+        if(perspective){
+            tileSize.h = tileSize.w; 
+        }else{
+            tileSize.h = tileSize.w/2; 
+        }
+        
+        origin = {x:canvas.width/tileSize.w/2,y:canvas.height/tileSize.h/2-worldSize.h/2}; drawWorld()
     }
     
     function zoom(z){
         if(z){
             let tempOrigin = {x:origin.x*tileSize.w,y:origin.y*tileSize.h}
-            tileSize.w *= 1.02;
+            tileSize.w *= 1 + zoomSpeed;
             if(perspective){
                 tileSize.h = tileSize.w
             }else{
@@ -494,7 +545,7 @@
             drawWorld()
         }else{
             let tempOrigin = {x:origin.x*tileSize.w,y:origin.y*tileSize.h}
-            tileSize.w *= 0.98;
+            tileSize.w *= 1 - zoomSpeed;
             if(perspective){
                 tileSize.h = tileSize.w
             }else{
@@ -503,6 +554,14 @@
             origin.x = tempOrigin.x/tileSize.w
             origin.y = tempOrigin.y/tileSize.h
             drawWorld()
+        }
+        
+        if(tileSize.w >= 960){
+            zoom(0)
+        }
+        
+        if(tileSize.w <= 20){
+            zoom(1)
         }
     }
     
@@ -551,13 +610,45 @@
         drawWorld()
     }
     
-    canvas.onmousewheel = (e) => {
-        if(e.wheelDelta > 0 && tileSize.w > 20){
-            zoom(0)
-        }
+    canvas.onwheel = (e) => {
+        if(canChangeHeight){
+           if(e.deltaY > 0){
+                if(invertZoom){
+                    document.getElementById("height").value --;
+                }else{
+                    document.getElementById("height").value ++;
+                }
+                changeHeight()
+            }
+            
+            if(e.deltaY < 0){
+                if(invertZoom){
+                    document.getElementById("height").value ++;
+                }else{
+                    document.getElementById("height").value --;
+                }
+                changeHeight()
+            } 
+        }else{
+            if(e.deltaY > 0){
+                if(invertZoom){
+                    zoom(0)
+                    canvas.style.cursor = "zoom-out"
+                }else{
+                    zoom(1)
+                    canvas.style.cursor = "zoom-in"
+                }
+            }
         
-        if(e.wheelDelta < 0 && tileSize.w < 960){
-            zoom(1)
+            if(e.deltaY < 0){
+                if(invertZoom){
+                    zoom(1)
+                    canvas.style.cursor = "zoom-in"
+                }else{
+                    zoom(0)
+                    canvas.style.cursor = "zoom-out"
+                }
+            }
         }
         
         e.preventDefault()
