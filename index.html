@@ -144,6 +144,7 @@
     <button onclick="perspective = 0; tileSize.h = tileSize.w/2; origin = {x:canvas.width/tileSize.w/2,y:canvas.height/tileSize.h/2-worldSize.h/2}; drawWorld()">Isometric</button>
     <button onclick="selected = []; drawWorld()">Deselect</button>
     <button onclick="invertSelect()">Invert</button>
+    <button onclick="rotate()">Rotate</button>
 </div>
 <script>
     let canvas = document.getElementById("game")
@@ -546,7 +547,7 @@
                 world.push(tempArr[x][y])
             }
         }
-        
+        selected = []
         drawWorld()
     }
     
