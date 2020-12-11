@@ -389,6 +389,10 @@
             quickSelect = 2;
         }
         
+        if(e.which == 82){
+            rotate()
+        }
+        
         console.log(e.which)
     }
     
@@ -499,6 +503,51 @@
             origin.y = tempOrigin.y/tileSize.h
             drawWorld()
         }
+    }
+    
+    function rotate(){
+        let tempArr = [];
+        
+        for(let y=0;y<worldSize.h;y++){
+            tempArr.push([])
+            for(let x=0;x<worldSize.w;x++){
+                tempArr[y].push(world[y*worldSize.w+x])
+            }
+        }
+        
+        size = tempArr.length;
+        layer_count = Math.floor(size/2)
+        
+        for(let i=0; i < layer_count; i++){
+            let first = i;
+            let last = size - first - 1;
+            
+            for(let e=first; e<last; e++){
+                offset = e - first;
+                
+                let corners = [
+                    tempArr[first][e], //back
+                    tempArr[e][last], //right
+                    tempArr[last][last-offset], //front
+                    tempArr[last-offset][first] //left
+                ]
+                
+                tempArr[first][e] = corners[3]
+                tempArr[e][last] = corners[0]
+                tempArr[last][last-offset] = corners[1]
+                tempArr[last-offset][first] = corners[2]
+            }
+        }
+        
+        world = []
+        
+        for(let x = 0; x < tempArr.length; x++){
+            for(let y =0; y < tempArr[x].length;y++){
+                world.push(tempArr[x][y])
+            }
+        }
+        
+        drawWorld()
     }
     
 </script>
