@@ -483,7 +483,7 @@
     function zoom(z){
         if(z){
             let tempOrigin = {x:origin.x*tileSize.w,y:origin.y*tileSize.h}
-            tileSize.w += 20;
+            tileSize.w *= 1.02;
             if(perspective){
                 tileSize.h = tileSize.w
             }else{
@@ -494,7 +494,7 @@
             drawWorld()
         }else{
             let tempOrigin = {x:origin.x*tileSize.w,y:origin.y*tileSize.h}
-            tileSize.w -= 20;
+            tileSize.w *= 0.98;
             if(perspective){
                 tileSize.h = tileSize.w
             }else{
@@ -549,6 +549,18 @@
         }
         selected = []
         drawWorld()
+    }
+    
+    canvas.onmousewheel = (e) => {
+        if(e.wheelDelta > 0 && tileSize.w > 20){
+            zoom(0)
+        }
+        
+        if(e.wheelDelta < 0 && tileSize.w < 960){
+            zoom(1)
+        }
+        
+        e.preventDefault()
     }
     
 </script>
