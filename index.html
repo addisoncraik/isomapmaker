@@ -132,12 +132,6 @@
     <hr>
     
     <div id="tileContainer">
-        <button onclick="switchTile(0)">Empty</button>
-        <button onclick="switchTile(1)">Grass</button>
-        <button onclick="switchTile(2)">Water</button>
-        <button onclick="switchTile(3)">Sand</button>
-        <button onclick="switchTile(4)">Stone</button>
-        <a href="">+ Create More Tiles +</a>
     </div>
 </div>
     
@@ -165,11 +159,11 @@
     
     //{top:["fillstyle","strokestyle"],sides:["left","right","srokestyle"],height:height}
     let tiles = [
-        {top:["#fff","#000"],sides:["#fff","#fff","#000"],height:1},
-        {top:["#28cb48","#119f2d"],sides:["#bf8d1d","#d19d28","#a87910"],height:1.2},
-        {top:["#64d3fc","#44a6cb"],sides:["#39c6fa","#4ecdfc","#44a6cb"],height:1},
-        {top:["#f1cf69","#C4A010"],sides:["#e8c661","#f2d376","#C4A010"],height:1.1},
-        {top:["#d0d0d0","#a5a5a5"],sides:["#bebebe","#d8d8d8","#a5a5a5"],height:1.1}
+        {top:["#fff","#000"],sides:["#fff","#fff","#000"],name:"Empty"},
+        {top:["#28cb48","#119f2d"],sides:["#bf8d1d","#d19d28","#a87910"],name:"Grass"},
+        {top:["#64d3fc","#44a6cb"],sides:["#39c6fa","#4ecdfc","#44a6cb"],name:"Water"},
+        {top:["#f1cf69","#C4A010"],sides:["#e8c661","#f2d376","#C4A010"],name:"Sand"},
+        {top:["#d0d0d0","#a5a5a5"],sides:["#bebebe","#d8d8d8","#a5a5a5"],name:"Stone"}
     ]
     
     let worldSize = {w:10,h:10};
@@ -196,7 +190,7 @@
         for(i=0;i<worldSize.w*worldSize.h;i++){
             //let t = Math.floor(Math.random()*tiles.length)
             let t = 0;
-            world.push({type:t,height:tiles[t].height})
+            world.push({type:t,height:1})
         }
     }
     
@@ -213,6 +207,10 @@
                 
                 let currentTile = world[y*worldSize.w+x]
                 let height;
+                
+                if(currentTile.type > tiles.length-1){
+                    currentTile.type  = 0
+                }
                 
                 if(perspective == 0){
                     height = currentTile.height*tileSize.w;
@@ -394,7 +392,7 @@
             zoom(1)
         }
         
-        if(e.which == 189 && tileSize.w > 30){
+        if(e.which == 189){
             zoom(0)
         }
         
@@ -653,6 +651,24 @@
         
         e.preventDefault()
     }
+    
+    function loadPallet(){
+        let tileContainer = document.getElementById("tileContainer");
+        tileContainer.innerHTML = "<a onclick='loadPallet()'>Update Pallet</a><a href='isotilemaker.html' target='_blank'>Edit Pallet</a>"
+        
+        if(localStorage.getItem("isomapmaker_pallet")){
+            tiles = JSON.parse(localStorage.getItem("isomapmaker_pallet"))
+        }
+        
+        for(let i=tiles.length-1; i>=0; i--){
+            let t = document.createElement("button")
+            t.innerHTML = tiles[i].name
+            t.setAttribute("onclick","switchTile("+i+")")
+            tileContainer.insertBefore(t,tileContainer.firstChild)
+        }
+    }
+    
+    loadPallet()
     
 </script>
     
