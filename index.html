@@ -2,22 +2,42 @@
 <html>
 <style>
     #game{
-        background: powderblue;
+        background: radial-gradient(circle farthest-corner at calc(40% - 40px) 50%, #0f2027, #203a43, #2c5364);
         position: absolute;
         top:50%;
         left:0;
         transform: translateY(-50%);
-    } 
+    }
+    
+    #prevent-edit{
+        position: absolute;
+        top:0;
+        right:0;
+        width:20vw; 
+        padding: 40px;
+        height: calc(100vh - 80px);
+        z-index: 2;
+    }
     
     #edit{
         position: absolute;
         top:0;
         right:0;
-        background: white;
         width:20vw;
         height: calc(100vh - 80px);
         padding: 40px;
         border-left:5px solid #e3e3e3;
+        z-index: 1;
+        
+        background: rgba(255, 255, 255, 0.5);
+        
+        -webkit-backdrop-filter: blur(40px);
+        backdrop-filter: blur(40px);
+        
+        border-left: solid .2vw transparent;
+        background-clip: padding-box;
+        box-shadow: 0px 0px 10px rgba(46,54,68,0.3);
+        overflow: hidden;
     }
     
     #edit p{
@@ -35,20 +55,30 @@
         width: 95%;
         display: block;
         margin: 20% auto;
-        height: 15px;
-        background: #d3d3d3;
+        height: 20px;
+        background: rgba(98, 98, 98, 0.22);
         outline: none;
         opacity: 0.7;
         border-radius: 20px;
+        overflow: hidden;
+        border:1px solid rgba(75, 75, 75, 0.1);
+        opacity:1;
+        transition: .5s
     }
+    
 
     #height::-webkit-slider-thumb {
         -webkit-appearance: none;
         appearance: none;
-        width: 25px;
-        height: 25px;
-        background: #4CAF50;
+        width: 20px;
+        height: 20px;
+        background: #fdfdfd;
+        border-radius: 50%;
         cursor: pointer;
+        border:1px solid #e8e8e8;
+        box-shadow: -100vw 0 5px calc(100vw - 12.5px) white;
+        opacity: 1;
+        transition: .5s
     }
     
     body{
@@ -58,21 +88,36 @@
     
     #toolBar{
         position: absolute;
-        background: rgba(255, 255, 255, 0.68);
-        left: 0;
         bottom:5vh;
-        left:40vw;
+        left:calc(40vw - 40px);
         transform: translateX(-50%);
+        width:40vw;
+        text-align: center;
         border-radius: 20px;
         padding: 1%;
-        width:50vw;
-        text-align: center;
+        background: rgba(255, 255, 255, 0.5);
+        
+        -webkit-backdrop-filter: blur(40px);
+        backdrop-filter: blur(40px);
+        
+        border: solid .1vw transparent;
+        background-clip: padding-box;
+        box-shadow: 0px 0px 10px rgba(46,54,68,0.3);
     }
     
-    #toolBar button{
-        height:6vh;
-        width:6vh;
-        margin-left: 5%;
+    #toolBar img{
+        margin:0 2.5%;
+        width:6%;
+        transition: .5s;
+        color: white;
+        opacity: 0.6;
+        margin-bottom: -.3vw;
+    }
+    
+    #toolBar img:hover{
+        transform: scale(1.3);
+        cursor: grab;
+        opacity: 0.8;
     }
     
     #toolBar button:first-child{
@@ -123,11 +168,11 @@
 </style>
 
 <canvas id="game"  oncontextmenu="return false;"></canvas>
-    
+<div id="prevent-edit"></div>
 <div id="edit">
     <p>Height:</p>
     <hr>
-    <input type="range" min="5" max="30" value="10" id="height" step="1" oninput="changeHeight()">
+    <input type="range" min="5" max="30" value="10" id="height" oninput="changeHeight();">
     <p>Type:</p>
     <hr>
     
@@ -136,14 +181,14 @@
 </div>
     
 <div id="toolBar">
-    <button onclick="zoom(1)">Zoom In</button>
-    <button onclick="zoom(0)">Zoom Out</button>
-    <button onclick="preview()">Preview</button>
-    <button onclick="download()"><a href="" download="" id="download">Download</a></button>
-    <button onclick="switchPerspective()">Switch View</button>
-    <button onclick="selected = []; drawWorld()">Deselect</button>
-    <button onclick="invertSelect()">Invert</button>
-    <button onclick="rotate()">Rotate</button>
+    <img onclick="zoom(1)" src="https://s.svgbox.net/hero-outline.svg?ic=zoom-in&fill=000" title="Zoom In (+)">
+    <img onclick="zoom(0)" src="https://s.svgbox.net/hero-outline.svg?ic=zoom-out&fill=000" title="Zoom Out (-)">
+    <img onclick="preview()" src="https://s.svgbox.net/hero-outline.svg?ic=eye&fill=000" title="Preview Map">
+    <a href="" download="" id="download"><img onclick="download()" src="https://s.svgbox.net/materialui.svg?ic=file_download&fill=000" title="Download Map"></a>
+    <img onclick="switchPerspective()" src="https://s.svgbox.net/materialui.svg?ic=flip_camera_android&fill=000" title="Switch Perspective (tab)">
+    <img onclick="selected = []; drawWorld()"src="https://s.svgbox.net/materialui.svg?ic=remove_circle_outline&fill=000" title="Deselect (d)">
+    <img onclick="invertSelect()" src="https://s.svgbox.net/materialui.svg?ic=invert_colors&fill=000" title="Invert Select (i)">
+    <img onclick="rotate()" src="https://s.svgbox.net/materialui.svg?ic=rotate_right&fill=000" title="Rotate Map (r)">
 </div>
     
 <div id="zoom">
@@ -151,6 +196,14 @@
     <button onclick="if(zoomSpeed < 0.8){zoomSpeed += 0.01}">+</button>
     <button onclick="if(zoomSpeed > 0.01){zoomSpeed -= 0.01}">-</button>
     <button onclick="invertZoom = !invertZoom">Invert Zoom</button>
+    
+    <p>Tool Bar Size</p>
+    <input id="tbs" type="range" min="20" max="60" value="40" onchange="document.getElementById('toolBar').style.width = this.value+'vw'"/>
+    
+    <p>Camera Angle</p>
+    <input id="ca" type="range" min="1" max="10" value="2" step="0.1" onchange="isometricScale = this.value; switchPerspective(0)"/>
+    <br>
+    <button onclick="isometricScale=2;switchPerspective(0);document.getElementById('toolBar').style.width = '40vw';invertZoom=0;zoomSpeed=0.02;document.getElementById('tbs').value = 40;document.getElementById('ca').value=2">Reset to Defaults</button>
 </div>
 <script>
     let canvas = document.getElementById("game")
@@ -183,10 +236,19 @@
     let canSelect = 0;
     let quickSelect = 0;
     let canChangeHeight = 0;
-    let invertZoom = 0;
+    let hideStats = 1;
+    let rotation = 0;
+    let name = "untitled"
+    
     let zoomSpeed = 0.02;
+    let invertZoom = 0;
+    let isometricScale = 2;
+    //toolbar size
+    //render settings?
     
     function generateWorld(){
+        tileSize.h = tileSize.w/isometricScale
+        
         for(i=0;i<worldSize.w*worldSize.h;i++){
             //let t = Math.floor(Math.random()*tiles.length)
             let t = 0;
@@ -200,6 +262,13 @@
     
     function drawWorld(){
         highlighted = 0;
+        if(selected.length > 0){
+            document.getElementById("prevent-edit").style.zIndex = "0"
+            document.getElementById("edit").style.filter = "blur(0px)"
+        }else{
+            document.getElementById("prevent-edit").style.zIndex = "2"
+            document.getElementById("edit").style.filter = "blur(5px)"
+        }
         ctx.clearRect(0,0,canvas.width,canvas.height)
         
         for(y=0;y<worldSize.h;y++){
@@ -316,6 +385,8 @@
             }
         }
         
+        stats()
+        
     }
     
     
@@ -347,7 +418,7 @@
             }
         }
         
-        drawWorld()    
+        drawWorld() 
     }
     
     canvas.onmousedown = (e) => {
@@ -431,6 +502,11 @@
             e.preventDefault()
             switchPerspective()
         }
+        
+        if(e.which == 192){
+            hideStats = !hideStats
+            drawWorld()
+        }
         console.log(e.which)
     }
     
@@ -446,9 +522,9 @@
     }
     
     //window.onresize = function(){
-        canvas.width = window.innerWidth*0.8
+        canvas.width = window.innerWidth
         canvas.height = window.innerHeight
-        origin = {x:canvas.width/tileSize.w/2,y:canvas.height/tileSize.h/2-worldSize.h/2};
+        origin = {x:(canvas.width*0.8-80)/tileSize.w/2,y:canvas.height/tileSize.h/2-worldSize.h/2};
         generateWorld()
         drawWorld()
     //}
@@ -475,25 +551,43 @@
     function preview(){
         selected = []
         canEdit = 0;
+        hideStats = 1;
+        perspective = 0;
+        tileSize.w = (canvas.width*0.6)/worldSize.w
+        tileSize.h = tileSize.w/isometricScale
         
+        if(isometricScale < 2){
+            tileSize.h = (canvas.height*0.5)/worldSize.h
+            tileSize.w = tileSize.h*isometricScale
+        }
+        
+        origin = {x:canvas.width/tileSize.w/2,y:canvas.height/tileSize.h/2-(worldSize.h/2)+1};
         drawWorld()
         
         var win = window.open();
-        win.document.write('<iframe src="' + canvas.toDataURL()  + '" frameborder="0" style="border:0; top:0px; left:0px; bottom:0px; right:0px; width:100%; height:100%;" allowfullscreen><a href="'+ canvas.toDataURL() +'" download="'+ 'name' + '">Download</a></iframe>');
+        win.document.write('<iframe src="' + canvas.toDataURL()  + '" frameborder="0" style="border:0; top:0px; left:0px; bottom:0px; right:0px; width:100%; height:100%;" allowfullscreen></iframe>');
         
         canEdit = 1;
+        origin = {x:(canvas.width*0.8-80)/tileSize.w/2,y:canvas.height/tileSize.h/2-worldSize.h/2};
+        drawWorld()
     }
     
     function download(){
         selected = []
         canEdit = 0;
-        
+        perspective = 0;
+        hideStats = 1;
+        tileSize.w = (canvas.width - 800)/worldSize.w
+        tileSize.h = tileSize.w/isometricScale
+        origin = {x:canvas.width/tileSize.w/2,y:canvas.height/tileSize.h/2-(worldSize.h/2)+1};
         drawWorld()
         
-        document.getElementById("download").setAttribute("download", "name")
+        document.getElementById("download").setAttribute("download", name)
         document.getElementById("download").setAttribute("href", canvas.toDataURL())
         
         canEdit = 1;
+        origin = {x:(canvas.width*0.8-80)/tileSize.w/2,y:canvas.height/tileSize.h/2-worldSize.h/2};
+        drawWorld()
     }
     
     function invertSelect(){
@@ -517,40 +611,40 @@
         drawWorld()
     }
     
-    function switchPerspective(){
-        perspective = !perspective; 
+    function switchPerspective(flipP){
+        if(flipP == undefined){perspective = !perspective}; 
         
         if(perspective){
             tileSize.h = tileSize.w; 
         }else{
-            tileSize.h = tileSize.w/2; 
+            tileSize.h = tileSize.w/isometricScale; 
         }
         
-        origin = {x:canvas.width/tileSize.w/2,y:canvas.height/tileSize.h/2-worldSize.h/2}; drawWorld()
+        origin = {x:(canvas.width*0.8-80)/tileSize.w/2,y:canvas.height/tileSize.h/2-worldSize.h/2}; drawWorld()
     }
     
     function zoom(z){
         if(z){
-            let tempOrigin = {x:origin.x*tileSize.w,y:origin.y*tileSize.h}
+            let cursorOffset = {x:origin.x-cursor.x/tileSize.w,y:origin.y-cursor.y/tileSize.h}
             tileSize.w *= 1 + zoomSpeed;
             if(perspective){
                 tileSize.h = tileSize.w
             }else{
-                tileSize.h = tileSize.w/2
+                tileSize.h = tileSize.w/isometricScale
             }
-            origin.x = tempOrigin.x/tileSize.w
-            origin.y = tempOrigin.y/tileSize.h
+            origin.x = cursor.x/tileSize.w+cursorOffset.x
+            origin.y = cursor.y/tileSize.h+cursorOffset.y
             drawWorld()
         }else{
-            let tempOrigin = {x:origin.x*tileSize.w,y:origin.y*tileSize.h}
+            let cursorOffset = {x:origin.x-cursor.x/tileSize.w,y:origin.y-cursor.y/tileSize.h}
             tileSize.w *= 1 - zoomSpeed;
             if(perspective){
                 tileSize.h = tileSize.w
             }else{
-                tileSize.h = tileSize.w/2
+                tileSize.h = tileSize.w/isometricScale
             }
-            origin.x = tempOrigin.x/tileSize.w
-            origin.y = tempOrigin.y/tileSize.h
+            origin.x = cursor.x/tileSize.w+cursorOffset.x
+            origin.y = cursor.y/tileSize.h+cursorOffset.y
             drawWorld()
         }
         
@@ -565,6 +659,11 @@
     
     function rotate(){
         let tempArr = [];
+        rotation ++
+        
+        if(rotation > 3){
+            rotation = 0;
+        }
         
         for(let y=0;y<worldSize.h;y++){
             tempArr.push([])
@@ -669,6 +768,37 @@
     }
     
     loadPallet()
+    
+    function stats(){
+        if(!hideStats){
+            let x = canvas.width*0.8 - 155 - 80
+            let y = 15
+            ctx.font = "7px sans-serif"
+            ctx.fillStyle="white"
+            ctx.fillText(name+".isomap ("+worldSize.w+"x"+worldSize.h+")",x,y)
+            ctx.fillText("Zoom: "+(tileSize.w/80).toFixed(1)+"x",x,y+15)
+            ctx.fillText("Inverted Zoom: "+(invertZoom ? "YES" : "NO"),x,y+30)
+            ctx.fillText("Zoom Speed: "+zoomSpeed,x,y+45)
+            ctx.fillText("Rotation: "+rotation*90+"deg",x,y+60)
+            ctx.fillText("Perspective: "+(perspective ? "top-down" : "isometric"),x,y+75)
+            ctx.fillText("Isometric Ratio: 1:"+isometricScale,x,y+90)
+            ctx.fillText("Current Tile: "+(highlighted ? "("+highlighted[1]+","+highlighted[0]+")"+" "+highlighted[2]+"m" : ""),x,y+105)
+            let selectedTiles = ""
+            
+            for(let i = 0; i<Math.ceil(world.length/4);i++){
+                for(let e = 0; e<4;e++){
+                    if(selected[i*4+e]){
+                        ctx.fillText("("+selected[i*4+e][1]+","+selected[i*4+e][0]+")"+" "+selected[i*4+e][2]+"m",x+10+(35*e),y+135+(i*15))
+                    }else{
+                        break;
+                    }
+                }
+            }
+            
+            ctx.fillText("Selected Tile(s): "+selectedTiles,x,y+120)
+            
+        }
+    }
     
 </script>
     
