@@ -9,16 +9,6 @@
         transform: translateY(-50%);
     }
     
-    #prevent-edit{
-        position: absolute;
-        top:0;
-        right:0;
-        width:20vw; 
-        padding: 40px;
-        height: calc(100vh - 80px);
-        z-index: 2;
-    }
-    
     #edit{
         position: absolute;
         top:0;
@@ -168,7 +158,6 @@
 </style>
 
 <canvas id="game"  oncontextmenu="return false;"></canvas>
-<div id="prevent-edit"></div>
 <div id="edit">
     <p>Height:</p>
     <hr>
@@ -262,13 +251,6 @@
     
     function drawWorld(){
         highlighted = 0;
-        if(selected.length > 0){
-            document.getElementById("prevent-edit").style.zIndex = "0"
-            document.getElementById("edit").style.filter = "blur(0px)"
-        }else{
-            document.getElementById("prevent-edit").style.zIndex = "2"
-            document.getElementById("edit").style.filter = "blur(5px)"
-        }
         ctx.clearRect(0,0,canvas.width,canvas.height)
         
         for(y=0;y<worldSize.h;y++){
