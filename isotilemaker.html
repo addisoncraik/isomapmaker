@@ -65,6 +65,7 @@
         border: none;
         text-align: left;
         padding: 0 6px;
+        color:inherit;
     }
     
     #tileContainer button button:hover{
@@ -84,18 +85,22 @@
         display: block;
         margin-top:5%;
     }
+    .active{
+        background: rgba(53, 185, 53, 0.85) !important;
+        color:white;
+    }
 </style>
 
 <canvas id="game"  oncontextmenu="return false;"></canvas>
     
 <div id="edit">
     <p>Colors:</p>
-    <input id="top_fill" type="color">
-    <input id="top_stroke" type="color">
-    <input id="left_fill" type="color">
-    <input id="right_fill" type="color">
-    <input id="left_right_stroke" type="color">
-    <input id="name" type="text">
+    <input id="top_fill" type="color" onchange="showTile()">
+    <input id="top_stroke" type="color" onchange="showTile()">
+    <input id="left_fill" type="color" onchange="showTile()">
+    <input id="right_fill" type="color" onchange="showTile()">
+    <input id="left_right_stroke" type="color" onchange="showTile()">
+    <input id="name" type="text" placeholder="Tile Name">
     <!--<textarea id="properties"></textarea>-->
     <button onclick="newTile()">Add Tile</button>
     <p>Tiles:</p>
@@ -137,36 +142,24 @@
         return {x:tileSize.w + (x-y) * tileSize.w/2,y:tileSize.h - h + (x+y) * tileSize.h/2}
     }
     
-    function drawTile(type){
+    function drawTile(c){
         ctx.clearRect(0,0,canvas.width,canvas.height)
-        
-        
                 
         let height = tileSize.w*0.7;
-        
-        let currentTile = {type:type}
-                
-        if(type > tiles.length-1){
-            currentTile.type = 0;
-        }
             
         let pos = {x:canvas.width/2,y:canvas.height/2 - (height+tileSize.h)/2}
         
-        colors[0].value = tiles[currentTile.type].top[0]
-        colors[1].value = tiles[currentTile.type].top[1]
-        colors[2].value = tiles[currentTile.type].sides[0]
-        colors[3].value = tiles[currentTile.type].sides[1]
-        colors[4].value = tiles[currentTile.type].sides[2]
-        
-        name.value = tiles[currentTile.type].name
+        for(let i=0; i<c.length; i++){
+            colors[i].value = c[i]
+        }
                 
                 
         pos.y += tileSize.h
                 
                 ctx.lineWidth = 2
                 ctx.beginPath()
-                ctx.strokeStyle = tiles[currentTile.type].sides[2]
-                ctx.fillStyle = tiles[currentTile.type].sides[1]
+                ctx.strokeStyle = c[4]
+                ctx.fillStyle = c[3]
                 ctx.moveTo(pos.x+tileSize.w/2,pos.y-tileSize.h/2)
                 ctx.lineTo(pos.x+tileSize.w/2,pos.y-tileSize.h/2+height)
                 ctx.lineTo(pos.x,pos.y+height)
@@ -176,7 +169,7 @@
                 ctx.stroke()
                 
                 ctx.beginPath()
-                ctx.fillStyle = tiles[currentTile.type].sides[0]
+                ctx.fillStyle = c[2]
                 ctx.moveTo(pos.x-tileSize.w/2,pos.y-tileSize.h/2)
                 ctx.lineTo(pos.x-tileSize.w/2,pos.y-tileSize.h/2+height)
                 ctx.lineTo(pos.x,pos.y+height)
@@ -187,8 +180,8 @@
                 
                 pos.y -= tileSize.h
                 ctx.beginPath()
-                ctx.fillStyle = tiles[currentTile.type].top[0]
-                ctx.strokeStyle = tiles[currentTile.type].top[1]
+                ctx.fillStyle = c[0]
+                ctx.strokeStyle = c[1]
                 ctx.moveTo(pos.x,pos.y)
                 ctx.lineTo(pos.x+tileSize.w/2,pos.y+tileSize.h/2)
                 ctx.lineTo(pos.x,pos.y+tileSize.h)
@@ -210,7 +203,19 @@
         
         console.log(e.which)
     }
-    
+
+    function showTile(type){
+        for(let i=0; i<tiles.length;i++){
+            document.getElementById("tileContainer").children[i].setAttribute("class","")
+        }
+        
+       if(type != undefined || type >= tiles.length){
+           document.getElementById("tileContainer").children[type].setAttribute("class","active")
+           drawTile([tiles[type].top[0],tiles[type].top[1],tiles[type].sides[0],tiles[type].sides[1],tiles[type].sides[2]])
+       }else{
+           drawTile([colors[0].value,colors[1].value,colors[2].value,colors[3].value,colors[4].value])
+       }
+    }
     
     function loadPallet(){
         let tileContainer = document.getElementById("tileContainer");
@@ -223,7 +228,7 @@
         for(let i=tiles.length-1; i>=0; i--){
             let t = document.createElement("button")
             t.innerHTML = tiles[i].name+"<button onclick='deleteTile("+i+")'>-</button>"
-            t.setAttribute("onclick","drawTile("+i+")")
+            t.setAttribute("onclick","showTile("+i+")")
             tileContainer.insertBefore(t,tileContainer.firstChild)
         }
     }
@@ -233,22 +238,25 @@
     }
     
     function newTile(){
+        if(name.value == ""){
+            name.value = "undefined"
+        }
+        
         tiles.push({top:[colors[0].value,colors[1].value],sides:[colors[2].value,colors[3].value,colors[4].value],name:name.value})
         savePallet()
         loadPallet()
-        drawTile(tiles.length-1)
+        showTile(tiles.length-1)
+        name.value = ""
     }
     
     function deleteTile(i){
         tiles.splice(i,1)
         savePallet()
         loadPallet()
+        colors[0].value = colors[2].value = colors[3].value = "#ffffff"
+        colors[1].value = colors[4].value = "#000000"
+        showTile()
     }
-    
-    canvas.width = window.innerWidth*0.8
-    canvas.height = window.innerHeight;
-    loadPallet()
-    drawTile(0)
     
     function importTile(){
         let t = prompt('import tile code here:\n e.g {"top":["#d0d0d0","#a5a5a5"],"sides":["#bebebe","#d8d8d8","#a5a5a5"],"name":"Stone"}')
@@ -261,6 +269,11 @@
         localStorage.setItem("isomapmaker_pallet","")
         location.reload()
     }
+    
+    canvas.width = window.innerWidth*0.8
+    canvas.height = window.innerHeight;
+    loadPallet()
+    showTile(0)
     
 </script>
     
