@@ -2,11 +2,18 @@
 <html>
 <style>
     #game{
-        background: radial-gradient(circle farthest-corner at calc(40% - 40px) 50%, #0f2027, #203a43, #2c5364);
         position: absolute;
         top:50%;
         left:0;
         transform: translateY(-50%);
+    }
+    
+    #game.light{
+        background: radial-gradient(circle farthest-corner at calc(40% - 40px) 50%, #c0d8e2, #549db7, #46788e);
+    }
+    
+    #game.dark{
+        background: radial-gradient(circle farthest-corner at calc(40% - 40px) 50%, #0f2027, #203a43, #2c5364);
     }
     
     #edit{
@@ -16,7 +23,6 @@
         width:20vw;
         height: calc(100vh - 80px);
         padding: 40px;
-        border-left:5px solid #e3e3e3;
         z-index: 1;
         
         background: rgba(255, 255, 255, 0.5);
@@ -58,7 +64,7 @@
         overflow: hidden;
         border:1px solid rgba(75, 75, 75, 0.1);
         opacity:1;
-        transition: .5s
+        transition: .5s;
     }
     
 
@@ -115,16 +121,19 @@
         opacity: 0.8;
     }
     
-    #toolBar button:first-child{
-        margin-left: 0;
-    }
-    
     #tileContainer{
         width:100%;
         max-height: 70vh;
         display: block;
         margin: 2% auto 0;
         overflow-y: scroll;
+        overflow-x: visible;
+        -ms-overflow-style: none;
+        scrollbar-width: none; 
+    }
+    
+    #tileContainer::-webkit-scrollbar{
+        display: none;
     }
     
     #tileContainer button{
@@ -150,6 +159,7 @@
         color: rgba(0, 0, 0, 0.4);
         font-weight: 300;
         transition: .3s;
+        text-transform: capitalize;
     }
     
     #tileContainer button:hover{
@@ -172,14 +182,6 @@
         transform: scale(1.1);
     }
     
-    #zoom{
-        position: absolute;
-        top:2vh;
-        left:2vw;
-        background: white;
-        padding: 1%;
-    }
-    
      #tileContainer button div{
         float:right;
         width:15%;
@@ -187,9 +189,101 @@
         margin:auto;
         opacity: 0.8;
     }
+    #create{
+        position: absolute;
+        z-index: 6;
+        top:0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+    }
+    
+    #create div{
+        background: white;
+        padding: 3%;
+        position: absolute;
+        top:50%;
+        left:50%;
+        transform: translate(-50%,-50%)
+    }
+    
+    #menuBar{
+        width: 3.5vw;
+        height: 50vh;
+        position: absolute;
+        z-index: 100;
+        margin: .75vw 1.5vw;
+        top:0;
+        left: 0;
+    }
+    #menuBar button{
+        width: 100%;
+        height: 3.5vw;
+        border: none;
+        padding: 0;
+        margin: .75vw 0;
+        border-radius: .75vw;
+        background: rgba(255, 255, 255, 0.5);
+        
+        -webkit-backdrop-filter: blur(20px);
+        backdrop-filter: blur(20px);
+        
+        border: solid .1vw transparent;
+        background-clip: padding-box;
+        box-shadow: 0px 0px 10px rgba(46,54,68,0.3);
+        outline: none;
+    }
+    
+    #setting{
+        display: none;
+        
+        position: absolute;
+        top:2vh;
+        left:2vw;
+        background: white;
+        padding: 1%;
+    }
+    
+    #menuBar img{
+        width:60%;
+        transition: .3s;
+        color: white;
+        opacity: 0.6;
+        margin-bottom: -.3vw;
+    }
+    
+    #menuBar img:hover{
+        transform: scale(1.1);
+        cursor: pointer;
+        opacity: 0.8;
+    }
+    
+    #name{
+        position: absolute;
+        top:2vh;
+        left: calc(40vw - 40px);
+        transform: translateX(-50%);
+        outline: none;
+        color: rgba(255, 255, 255, 0.9);
+        border-radius: 1vw;
+        font-size: 1vw;
+        width: 20vw;
+        text-align: center;
+        background: none;
+        border: none;
+    }
 </style>
-
-<canvas id="game"  oncontextmenu="return false;"></canvas>
+<div id="create">
+    <div>
+        <h2>New Map</h2>
+        <p>Size:</p>
+        <input id="size" max="50" min="3" type="number" placeholder="10"/>
+        <br>
+        <button onclick="generateWorld(1)">Create Map</button>
+    </div>
+</div>
+<div id="main">
+<canvas id="game" class="dark" oncontextmenu="return false;"></canvas>
 <div id="edit">
     <p>Height:</p>
     <input type="range" min="5" max="30" value="10" id="height" oninput="changeHeight();">
@@ -198,19 +292,28 @@
     </div>
     <a href='isotilemaker.html' target='_blank'>Edit Pallet</a>
 </div>
+
+<div id="menuBar">
+    <button><img src="https://s.svgbox.net/materialui.svg?ic=settings&fill=000000"></button>  
+    <button><img src="https://s.svgbox.net/materialui.svg?ic=file_upload&fill=000000"></button>
+    <button><img src="https://s.svgbox.net/materialui.svg?ic=file_download&fill=000000"></button>
+    <button><img src="https://s.svgbox.net/materialui.svg?ic=restore_page&fill=000000"></button>
+</div>
+    
+<input id="name" type="text" placeholder="untitled">
     
 <div id="toolBar">
     <img onclick="zoom(1)" src="https://s.svgbox.net/hero-outline.svg?ic=zoom-in&fill=000" title="Zoom In (+)">
     <img onclick="zoom(0)" src="https://s.svgbox.net/hero-outline.svg?ic=zoom-out&fill=000" title="Zoom Out (-)">
     <img onclick="preview()" src="https://s.svgbox.net/hero-outline.svg?ic=eye&fill=000" title="Preview Map">
     <a href="" download="" id="download"><img onclick="download()" src="https://s.svgbox.net/materialui.svg?ic=file_download&fill=000" title="Download Map"></a>
-    <img onclick="switchPerspective()" src="https://s.svgbox.net/materialui.svg?ic=flip_camera_android&fill=000" title="Switch Perspective (tab)">
+    <img onclick="switchPerspective()" src="https://s.svgbox.net/materialui.svg?ic=swap_vert&fill=000" title="Switch Perspective (tab)">
     <img onclick="selected = []; drawWorld()"src="https://s.svgbox.net/materialui.svg?ic=remove_circle_outline&fill=000" title="Deselect (d)">
     <img onclick="invertSelect()" src="https://s.svgbox.net/materialui.svg?ic=invert_colors&fill=000" title="Invert Select (i)">
     <img onclick="rotate()" src="https://s.svgbox.net/materialui.svg?ic=rotate_right&fill=000" title="Rotate Map (r)">
 </div>
     
-<div id="zoom">
+<div id="settings">
     <p>Zoom Speed</p>
     <button onclick="if(zoomSpeed < 0.8){zoomSpeed += 0.01}">+</button>
     <button onclick="if(zoomSpeed > 0.01){zoomSpeed -= 0.01}">-</button>
@@ -221,10 +324,27 @@
     
     <p>Camera Angle</p>
     <input id="ca" type="range" min="1" max="10" value="2" step="0.1" onchange="isometricScale = this.value; switchPerspective(0)"/>
+    
+    <p>Pan Controls</p>
+    <button onclick="panControl = 2;">Middle Click</button>
+    <button onclick="panControl = 3;">Right Click</button>
+    <button onclick="panControl = 1;">Left Click</button>
+    
+    <p>Background</p>
+    <input onchange="document.getElementById('game').style.background = this.value;" type="color">
+    <button onclick="document.getElementById('game').className = 'light';document.getElementById('game').style.background = ''">Light</button>
+    <button onclick="document.getElementById('game').className = 'dark';document.getElementById('game').style.background = ''">Dark</button>
     <br>
-    <button onclick="isometricScale=2;switchPerspective(0);document.getElementById('toolBar').style.width = '40vw';invertZoom=0;zoomSpeed=0.02;document.getElementById('tbs').value = 40;document.getElementById('ca').value=2">Reset to Defaults</button>
+    <br>
+    <button onclick="isometricScale=2;switchPerspective(0);document.getElementById('toolBar').style.width = '40vw';invertZoom=0;zoomSpeed=0.02;document.getElementById('tbs').value = 40;document.getElementById('ca').value=2; panControl = 3;">Reset to Defaults</button>
+    <button onclick="drawWorld(1)">Save World</button>
+    <button onclick="localStorage.setItem('isomapmaker_world','');localStorage.setItem('isomapmaker_name','');location.reload()">New World</button>
+</div>
 </div>
 <script>
+    document.getElementById("main").style.filter = "blur(10px)"
+    
+    let nameInput = document.getElementById("name")
     let canvas = document.getElementById("game")
     let heightSlider = document.getElementById("height")
     let ctx = canvas.getContext("2d")
@@ -257,17 +377,53 @@
     let canChangeHeight = 0;
     let hideStats = 1;
     let rotation = 0;
+    let drawAmount = 0;
+    
     let name = "untitled"
     
     let zoomSpeed = 0.02;
     let invertZoom = 0;
     let isometricScale = 2;
+    let panControl = 3;
     //toolbar size
-    //render settings?
-    //middle mouse to pan
     //change bg
     
-    function generateWorld(){
+    function generateWorld(blur){
+        if(blur){
+            document.getElementById("main").style.filter = ""
+            
+            document.getElementById("create").style.display = "none"
+            
+            if(parseInt(document.getElementById("size").value) >= 3 && parseInt(document.getElementById("size").value) <= 50){
+                worldSize.w = worldSize.h = parseInt(document.getElementById("size").value);
+            }
+            
+            name = "untitled"
+            world=[]
+        }
+        
+        if(localStorage.getItem("isomapmaker_world")){
+            world = JSON.parse(localStorage.getItem("isomapmaker_world"))
+            name = localStorage.getItem("isomapmaker_name")
+            
+            document.getElementById("name").value = name;
+            
+            worldSize.w = worldSize.h = Math.sqrt(world.length)
+            
+            for(i=0;i<worldSize.w*worldSize.h;i++){
+                let t = 0;
+                world.push({type:t,height:1})
+            }
+            
+            world = JSON.parse(localStorage.getItem("isomapmaker_world"))
+            
+            document.getElementById("main").style.filter = ""
+            
+            document.getElementById("create").style.display = "none"
+            loadPallet()
+            return;
+        }
+        
         tileSize.h = tileSize.w/isometricScale
         
         for(i=0;i<worldSize.w*worldSize.h;i++){
@@ -281,7 +437,8 @@
         return {x:origin.x*tileSize.w + (x-y) * tileSize.w/2,y:origin.y*tileSize.h - h + (x+y) * tileSize.h/2}
     }
     
-    function drawWorld(){
+    function drawWorld(save){
+        drawAmount ++;
         highlighted = 0;
         ctx.clearRect(0,0,canvas.width,canvas.height)
         
@@ -401,6 +558,10 @@
         
         stats()
         
+        if(save){
+            localStorage.setItem("isomapmaker_world",JSON.stringify(world))   
+            localStorage.setItem('isomapmaker_name',name)
+        }
     }
     
     
@@ -408,7 +569,7 @@
         cursor.x = e.clientX-canvas.getBoundingClientRect().left;
         cursor.y = e.clientY-canvas.getBoundingClientRect().top;
         
-        if(diff && e.which == 3){
+        if(diff && e.which == panControl){
             canvas.style.cursor = "move"
             origin = {x:cursor.x/tileSize.w-diff.x,y:cursor.y/tileSize.h-diff.y}
         }else{
@@ -437,7 +598,11 @@
     
     canvas.onmousedown = (e) => {
         diff = {x:cursor.x/tileSize.w-origin.x,y:cursor.y/tileSize.h-origin.y};
-        e.preventDefault()
+        
+        if(e.which == 3){
+            e.preventDefault()
+        }
+        
         canSelect = 1;
         drawWorld()
         
@@ -473,6 +638,7 @@
     }
     
     document.onkeydown = (e) => {
+        if(document.getElementById("main").style.filter == "" && nameInput != document.activeElement){
         if(e.which == 187){
             zoom(1)
         }
@@ -521,7 +687,16 @@
             hideStats = !hideStats
             drawWorld()
         }
-        console.log(e.which)
+            console.log(e.which)
+        }else{
+            name = nameInput.value;
+            
+            if(name == ""){
+                name = "untitled"
+            }
+            
+            drawWorld()
+        }
     }
     
     document.onkeyup = (e) => {
@@ -532,34 +707,36 @@
         if(e.which == 72){
             canChangeHeight = 0;
         }
-        
-    }
+                    
+        }
     
-    //window.onresize = function(){
+    window.onresize = function(){
         canvas.width = window.innerWidth
         canvas.height = window.innerHeight
         origin = {x:(canvas.width*0.8-80)/tileSize.w/2,y:canvas.height/tileSize.h/2-worldSize.h/2};
-        generateWorld()
         drawWorld()
-    //}
+    }
     
     
-    
-   // onresize()
+    generateWorld() 
+    onresize()
     
     function switchTile(type){
         for(let i=0;i<selected.length;i++){
             world[selected[i][1]*worldSize.w+selected[i][0]].type = type
-            drawWorld()
         }
+        drawWorld()
     }
     
     function changeHeight(){
+        let heightDiff = parseInt(heightSlider.value)/10 - selected[selected.length-1][2]
+        
         for(let i=0;i<selected.length;i++){
-            world[selected[i][1]*worldSize.w+selected[i][0]].height = parseInt(document.getElementById("height").value)/10
-            selected[i][2] = world[selected[i][1]*worldSize.w+selected[i][0]].height
-            drawWorld()
+            let index = selected[i][1]*worldSize.w+selected[i][0];
+            world[index].height =  Math.max(0.5,Math.min(3, world[index].height + heightDiff))
+            selected[i][2] = world[index].height
         }
+        drawWorld()
     }
     
     function preview(){
@@ -793,6 +970,7 @@
             let y = 15
             ctx.font = "10px sans-serif"
             ctx.fillStyle="white"
+            ctx.fillText(drawAmount, 20, canvas.height - 30)
             ctx.fillText(name+".isomap ("+worldSize.w+"x"+worldSize.h+")",x,y)
             ctx.fillText("Zoom: "+(tileSize.w/80).toFixed(1)+"x",x,y+15)
             ctx.fillText("Inverted Zoom: "+(invertZoom ? "YES" : "NO"),x,y+30)
