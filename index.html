@@ -16,7 +16,7 @@
         background: radial-gradient(circle farthest-corner at calc(40% - 40px) 50%, #0f2027, #203a43, #2c5364);
     }
     
-    #edit{
+    #edit, #settings{
         position: absolute;
         top:0;
         right:0;
@@ -34,6 +34,16 @@
         background-clip: padding-box;
         box-shadow: 0px 0px 10px rgba(46,54,68,0.3);
         overflow: hidden;
+    }
+    
+    #settings img{
+        width: 2vw;
+        transition: .5s;
+        cursor: pointer;
+    }
+    
+    #settings img:hover{
+        transform: rotate(-90deg) scale(1.1);
     }
     
     #edit p{
@@ -189,7 +199,7 @@
         margin:auto;
         opacity: 0.8;
     }
-    #create{
+    #shield{
         position: absolute;
         z-index: 6;
         top:0;
@@ -198,7 +208,7 @@
         height: 100vh;
     }
     
-    #create div{
+    #shield div{
         background: white;
         padding: 3%;
         position: absolute;
@@ -234,16 +244,6 @@
         outline: none;
     }
     
-    #setting{
-        display: none;
-        
-        position: absolute;
-        top:2vh;
-        left:2vw;
-        background: white;
-        padding: 1%;
-    }
-    
     #menuBar img{
         width:60%;
         transition: .3s;
@@ -266,15 +266,23 @@
         outline: none;
         color: rgba(255, 255, 255, 0.9);
         border-radius: 1vw;
-        font-size: 1vw;
+        font-size: 1.5vw;
+        font-weight: 100;
         width: 20vw;
         text-align: center;
         background: none;
         border: none;
+        color:#d9d9d9;
+    }
+    
+    #main{
+        width:100vw;
+        height: 100vh;
+        position: absolute;
     }
 </style>
-<div id="create">
-    <div>
+<div id="shield">
+    <div id="create">
         <h2>New Map</h2>
         <p>Size:</p>
         <input id="size" max="50" min="3" type="number" placeholder="10"/>
@@ -284,36 +292,9 @@
 </div>
 <div id="main">
 <canvas id="game" class="dark" oncontextmenu="return false;"></canvas>
-<div id="edit">
-    <p>Height:</p>
-    <input type="range" min="5" max="30" value="10" id="height" oninput="changeHeight();">
-    <p>Tile Pallet:</p>
-    <div id="tileContainer">
-    </div>
-    <a href='isotilemaker.html' target='_blank'>Edit Pallet</a>
-</div>
-
-<div id="menuBar">
-    <button><img src="https://s.svgbox.net/materialui.svg?ic=settings&fill=000000"></button>  
-    <button><img src="https://s.svgbox.net/materialui.svg?ic=file_upload&fill=000000"></button>
-    <button><img src="https://s.svgbox.net/materialui.svg?ic=file_download&fill=000000"></button>
-    <button><img src="https://s.svgbox.net/materialui.svg?ic=restore_page&fill=000000"></button>
-</div>
     
-<input id="name" type="text" placeholder="untitled">
-    
-<div id="toolBar">
-    <img onclick="zoom(1)" src="https://s.svgbox.net/hero-outline.svg?ic=zoom-in&fill=000" title="Zoom In (+)">
-    <img onclick="zoom(0)" src="https://s.svgbox.net/hero-outline.svg?ic=zoom-out&fill=000" title="Zoom Out (-)">
-    <img onclick="preview()" src="https://s.svgbox.net/hero-outline.svg?ic=eye&fill=000" title="Preview Map">
-    <a href="" download="" id="download"><img onclick="download()" src="https://s.svgbox.net/materialui.svg?ic=file_download&fill=000" title="Download Map"></a>
-    <img onclick="switchPerspective()" src="https://s.svgbox.net/materialui.svg?ic=swap_vert&fill=000" title="Switch Perspective (tab)">
-    <img onclick="selected = []; drawWorld()"src="https://s.svgbox.net/materialui.svg?ic=remove_circle_outline&fill=000" title="Deselect (d)">
-    <img onclick="invertSelect()" src="https://s.svgbox.net/materialui.svg?ic=invert_colors&fill=000" title="Invert Select (i)">
-    <img onclick="rotate()" src="https://s.svgbox.net/materialui.svg?ic=rotate_right&fill=000" title="Rotate Map (r)">
-</div>
-    
-<div id="settings">
+<div id="settings" style="display: none;">
+    <img src="https://s.svgbox.net/materialui.svg?ic=clear&fill=000000" onclick="document.getElementById('settings').style.display = 'none'; document.getElementById('edit').style.display = 'block';">
     <p>Zoom Speed</p>
     <button onclick="if(zoomSpeed < 0.8){zoomSpeed += 0.01}">+</button>
     <button onclick="if(zoomSpeed > 0.01){zoomSpeed -= 0.01}">-</button>
@@ -337,8 +318,37 @@
     <br>
     <br>
     <button onclick="isometricScale=2;switchPerspective(0);document.getElementById('toolBar').style.width = '40vw';invertZoom=0;zoomSpeed=0.02;document.getElementById('tbs').value = 40;document.getElementById('ca').value=2; panControl = 3;">Reset to Defaults</button>
-    <button onclick="drawWorld(1)">Save World</button>
-    <button onclick="localStorage.setItem('isomapmaker_world','');localStorage.setItem('isomapmaker_name','');location.reload()">New World</button>
+</div>
+    
+<div id="edit">
+    <p>Height:</p>
+    <input type="range" min="5" max="30" value="10" id="height" oninput="changeHeight();">
+    <p>Tile Pallet:</p>
+    <div id="tileContainer">
+    </div>
+    <a href='isotilemaker.html' target='_blank'>Edit Pallet</a>
+</div>
+
+<div id="menuBar">
+    <button><img src="https://s.svgbox.net/materialui.svg?ic=settings&fill=000000" onclick="document.getElementById('settings').style.display = 'block'; document.getElementById('edit').style.display = 'none';" title="Settings"></button> 
+    
+    <button><img src="https://s.svgbox.net/materialui.svg?ic=file_upload&fill=000000" title="Upload"></button>
+    
+    <button><a href="" download="" id="download"><img onclick="download()" src="https://s.svgbox.net/materialui.svg?ic=file_download&fill=000" title="Download Map"></a></button>
+    
+    <button><img src="https://s.svgbox.net/materialui.svg?ic=restore_page&fill=000000" onclick="localStorage.setItem('isomapmaker_world','');localStorage.setItem('isomapmaker_name','');location.reload()" title="New Map"></button>
+</div>
+    
+<input id="name" type="text" placeholder="untitled" maxlength="20">
+    
+<div id="toolBar">
+    <img onclick="zoom(1)" src="https://s.svgbox.net/hero-outline.svg?ic=zoom-in&fill=000" title="Zoom In (+)">
+    <img onclick="zoom(0)" src="https://s.svgbox.net/hero-outline.svg?ic=zoom-out&fill=000" title="Zoom Out (-)">
+    <img onclick="preview()" src="https://s.svgbox.net/hero-outline.svg?ic=eye&fill=000" title="Preview Map">
+    <img onclick="switchPerspective()" src="https://s.svgbox.net/materialui.svg?ic=swap_vert&fill=000" title="Switch Perspective (tab)">
+    <img onclick="selected = []; drawWorld()"src="https://s.svgbox.net/materialui.svg?ic=remove_circle_outline&fill=000" title="Deselect (d)">
+    <img onclick="invertSelect()" src="https://s.svgbox.net/materialui.svg?ic=invert_colors&fill=000" title="Invert Select (i)">
+    <img onclick="rotate()" src="https://s.svgbox.net/materialui.svg?ic=rotate_right&fill=000" title="Rotate Map (r)">
 </div>
 </div>
 <script>
@@ -392,7 +402,7 @@
         if(blur){
             document.getElementById("main").style.filter = ""
             
-            document.getElementById("create").style.display = "none"
+            document.getElementById("shield").style.display = "none"
             
             if(parseInt(document.getElementById("size").value) >= 3 && parseInt(document.getElementById("size").value) <= 50){
                 worldSize.w = worldSize.h = parseInt(document.getElementById("size").value);
@@ -419,7 +429,7 @@
             
             document.getElementById("main").style.filter = ""
             
-            document.getElementById("create").style.display = "none"
+            document.getElementById("shield").style.display = "none"
             loadPallet()
             return;
         }
@@ -437,7 +447,7 @@
         return {x:origin.x*tileSize.w + (x-y) * tileSize.w/2,y:origin.y*tileSize.h - h + (x+y) * tileSize.h/2}
     }
     
-    function drawWorld(save){
+    function drawWorld(){
         drawAmount ++;
         highlighted = 0;
         ctx.clearRect(0,0,canvas.width,canvas.height)
@@ -558,10 +568,8 @@
         
         stats()
         
-        if(save){
-            localStorage.setItem("isomapmaker_world",JSON.stringify(world))   
-            localStorage.setItem('isomapmaker_name',name)
-        }
+        localStorage.setItem("isomapmaker_world",JSON.stringify(world))   
+        localStorage.setItem('isomapmaker_name',name)
     }
     
     
@@ -661,7 +669,6 @@
         
         if(e.which == 68){
             selected = [];
-            drawWorld()
         }
         
         if(e.which == 73){
@@ -688,14 +695,6 @@
             drawWorld()
         }
             console.log(e.which)
-        }else{
-            name = nameInput.value;
-            
-            if(name == ""){
-                name = "untitled"
-            }
-            
-            drawWorld()
         }
     }
     
@@ -943,6 +942,16 @@
     }
     
     function loadPallet(){
+        if(name != nameInput.value && nameInput.value != ""){
+            name = nameInput.value
+            drawWorld()
+        }
+        
+        if(name == ""){
+            name = "untitled"
+            drawWorld()
+        }
+        
         if(localStorage.getItem("isomapmaker_pallet")){
             if(JSON.stringify(tiles) == localStorage.getItem("isomapmaker_pallet")){
                 return;
