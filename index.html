@@ -9,7 +9,7 @@
     }
     
     #game.light{
-        background: radial-gradient(circle farthest-corner at calc(40% - 40px) 50%, #c0d8e2, #549db7, #46788e);
+        background: radial-gradient(circle farthest-corner at calc(40% - 40px) 50%, #9cecfb, #65c7f7, #0052d4);
     }
     
     #game.dark{
@@ -40,6 +40,8 @@
         width: 2vw;
         transition: .5s;
         cursor: pointer;
+        opacity: 0.7;
+        margin: -10px -10px 0 0 ;
     }
     
     #settings img:hover{
@@ -61,7 +63,7 @@
     }
     
 
-    #height {
+    input[type="range"] {
         -webkit-appearance: none;
         width: 100%;
         display: block;
@@ -78,7 +80,7 @@
     }
     
 
-    #height::-webkit-slider-thumb {
+    input[type="range"]::-webkit-slider-thumb {
         -webkit-appearance: none;
         appearance: none;
         width: 20px;
@@ -102,7 +104,7 @@
         bottom:5vh;
         left:calc(40vw - 40px);
         transform: translateX(-50%);
-        width:40vw;
+        width:35vw;
         text-align: center;
         border-radius: 20px;
         padding: 1%;
@@ -118,7 +120,7 @@
     
     #toolBar img{
         margin:0 2.5%;
-        width:6%;
+        width:7%;
         transition: .3s;
         color: white;
         opacity: 0.6;
@@ -273,12 +275,153 @@
         background: none;
         border: none;
         color:#d9d9d9;
+        font-family: sans-serif;
     }
     
     #main{
         width:100vw;
         height: 100vh;
         position: absolute;
+    }
+    
+    
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 62px;
+  height: 36px;
+  opacity: 0.9;
+}
+
+.switch input { 
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(98, 98, 98, 0.22);  
+  -webkit-transition: .4s;
+  transition: .4s;
+  border:1px solid rgba(75, 75, 75, 0.1);
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 28px;
+  width: 28px;
+  left: 2px;
+  bottom: 2px;
+  background-color: white;
+  -webkit-transition: .4s;
+  transition: .4s;
+  border: 1px solid #e8e8e8;
+}
+
+input:checked + .slider {
+  background-color: #3AC559;
+}
+
+
+input:checked + .slider:before {
+  -webkit-transform: translateX(26px);
+  -ms-transform: translateX(26px);
+  transform: translateX(26px);
+}
+    
+.slider.round {
+  border-radius: 34px;
+}
+
+.slider.round:before {
+  border-radius: 50%;
+}
+    #settings h1{
+        font-family: sans-serif;
+        font-weight: 400;
+        position: absolute;
+        top:30px;
+        left:50%;
+        transform: translate(-50%);
+        padding: 0;
+        margin: 0;
+        line-height: 2vw;
+        font-size: 1.5vw;
+        opacity: 0.7;
+    }
+    
+    #settings button{
+        background: none;
+        border: 1px solid rgb(10, 132, 255);
+        color: rgb(10,132,255);
+        padding: .5vw 2vw;
+        border-radius: 5px;
+        font-size: 1vw;
+        transition: .5s;
+        margin: auto;
+        display: block;
+        outline: none;
+        margin-top:5vh;
+    }
+    #settings button:hover{
+        transform: scale(1.05);
+        cursor: pointer;
+    }
+    
+    #settings button:active{
+        background: rgba(0,0,0,0.3)
+    }
+    
+    #settings p{
+        font-family: sans-serif;
+        font-weight: 400;
+        opacity: 0.5;
+        font-size: 1.2vw;
+        margin-top: 4vh;
+    }
+    .custom-select-wrapper {
+     user-select: none;
+     width: 100%;
+        font-family: sans-serif;
+        border: 1px solid rgba(75, 75, 75, 0.32);
+        border-radius: 20px;
+        overflow: hidden;
+        opacity: 1;
+}
+ .custom-option {
+     padding: 0 22px;
+     font-size: 22px;
+     font-weight: 300;
+     color: rgba(0, 0, 0, 0.3);
+     line-height: 60px;
+     cursor: pointer;
+     transition: all 0.3s;
+     display: none;
+     text-align: center;
+     opacity: 1;
+}
+    .custom-option.open{
+        display: block;
+        border-bottom: 1px solid rgba(75, 75, 75, 0.32);
+        border-radius: 0;
+    }
+    .custom-option.open:hover {
+        transform: scale(1.07)
+    }
+    .custom-option.open:last-child{
+        border:none;
+    }
+    .custom-option.selected {
+        display: block;
+        background: rgba(98, 98, 98, 0.22);
+        color:rgba(0, 0, 0, 0.6);
     }
 </style>
 <div id="shield">
@@ -289,35 +432,58 @@
         <br>
         <button onclick="generateWorld(1)">Create Map</button>
     </div>
+    <div id="export" style="display: none;">
+        <button>Image</button>
+        <button>RAW Data</button>
+        <button>Upload to <a target="_blank">isomapmaker gallery</a></button>
+    </div>
+    <div id="import" style="display: none;">
+        <p>Import</p>
+        <br>
+        <p>Project</p><input type="checkbox">
+        <p>World</p><input type="checkbox" checked><br><br>
+        <textarea placeholder="[palette,world,isometricscale]"></textarea>
+    </div>
 </div>
 <div id="main">
 <canvas id="game" class="dark" oncontextmenu="return false;"></canvas>
     
 <div id="settings" style="display: none;">
     <img src="https://s.svgbox.net/materialui.svg?ic=clear&fill=000000" onclick="document.getElementById('settings').style.display = 'none'; document.getElementById('edit').style.display = 'block';">
+    
+    <h1>Settings</h1>
+    
     <p>Zoom Speed</p>
-    <button onclick="if(zoomSpeed < 0.8){zoomSpeed += 0.01}">+</button>
-    <button onclick="if(zoomSpeed > 0.01){zoomSpeed -= 0.01}">-</button>
-    <button onclick="invertZoom = !invertZoom">Invert Zoom</button>
+    <input id="zs" type="range" min="1" max="10" value="5" onchange="zoomSpeed = this.value/100;saveSettings()"/>
+    
+    <p>Invert Zoom</p>
+    <label class="switch">
+        <input id="iz" type="checkbox" onclick="invertZoom = this.checked;saveSettings()">
+        <span class="slider round"></span>
+    </label>
     
     <p>Tool Bar Size</p>
-    <input id="tbs" type="range" min="20" max="60" value="40" onchange="document.getElementById('toolBar').style.width = this.value+'vw'"/>
+    <input id="tbs" type="range" min="20" max="60" value="35" onchange="document.getElementById('toolBar').style.width = this.value+'vw';saveSettings()"/>
     
     <p>Camera Angle</p>
-    <input id="ca" type="range" min="1" max="10" value="2" step="0.1" onchange="isometricScale = this.value; switchPerspective(0)"/>
+    <input id="ca" type="range" min="1" max="10" value="2" step="0.1" onchange="isometricScale = this.value; switchPerspective(0);saveSettings()"/>
     
     <p>Pan Controls</p>
-    <button onclick="panControl = 2;">Middle Click</button>
-    <button onclick="panControl = 3;">Right Click</button>
-    <button onclick="panControl = 1;">Left Click</button>
     
-    <p>Background</p>
-    <input onchange="document.getElementById('game').style.background = this.value;" type="color">
-    <button onclick="document.getElementById('game').className = 'light';document.getElementById('game').style.background = ''">Light</button>
-    <button onclick="document.getElementById('game').className = 'dark';document.getElementById('game').style.background = ''">Dark</button>
+    <div class="custom-select-wrapper">
+        <span class="custom-option selected" onclick="panControl = 3;saveSettings()">Right Click</span>
+        <span class="custom-option" onclick="panControl = 2;saveSettings()">Middle Click</span>
+        <span class="custom-option" onclick="panControl = 1;saveSettings()">Left Click</span>
+    </div>
+    
+    <p>Dark Mode</p>
+    <label class="switch">
+        <input id="dm" type="checkbox" onclick="if(this.checked){document.getElementById('game').className = 'dark';}else{document.getElementById('game').className = 'light';};saveSettings()" checked>
+        <span class="slider round"></span>
+    </label>
     <br>
     <br>
-    <button onclick="isometricScale=2;switchPerspective(0);document.getElementById('toolBar').style.width = '40vw';invertZoom=0;zoomSpeed=0.02;document.getElementById('tbs').value = 40;document.getElementById('ca').value=2; panControl = 3;">Reset to Defaults</button>
+    <button onclick="loadSettings(1)">Reset to Defaults</button>
 </div>
     
 <div id="edit">
@@ -332,9 +498,9 @@
 <div id="menuBar">
     <button><img src="https://s.svgbox.net/materialui.svg?ic=settings&fill=000000" onclick="document.getElementById('settings').style.display = 'block'; document.getElementById('edit').style.display = 'none';" title="Settings"></button> 
     
-    <button><img src="https://s.svgbox.net/materialui.svg?ic=file_upload&fill=000000" title="Upload"></button>
+    <button><img src="https://s.svgbox.net/materialui.svg?ic=file_upload&fill=000000" title="Import Map"></button>
     
-    <button><a href="" download="" id="download"><img onclick="download()" src="https://s.svgbox.net/materialui.svg?ic=file_download&fill=000" title="Download Map"></a></button>
+    <button><a href="" download="" id="download"><img onclick="download()" src="https://s.svgbox.net/materialui.svg?ic=file_download&fill=000" title="Export Map"></a></button>
     
     <button><img src="https://s.svgbox.net/materialui.svg?ic=restore_page&fill=000000" onclick="localStorage.setItem('isomapmaker_world','');localStorage.setItem('isomapmaker_name','');location.reload()" title="New Map"></button>
 </div>
@@ -344,14 +510,38 @@
 <div id="toolBar">
     <img onclick="zoom(1)" src="https://s.svgbox.net/hero-outline.svg?ic=zoom-in&fill=000" title="Zoom In (+)">
     <img onclick="zoom(0)" src="https://s.svgbox.net/hero-outline.svg?ic=zoom-out&fill=000" title="Zoom Out (-)">
-    <img onclick="preview()" src="https://s.svgbox.net/hero-outline.svg?ic=eye&fill=000" title="Preview Map">
     <img onclick="switchPerspective()" src="https://s.svgbox.net/materialui.svg?ic=swap_vert&fill=000" title="Switch Perspective (tab)">
     <img onclick="selected = []; drawWorld()"src="https://s.svgbox.net/materialui.svg?ic=remove_circle_outline&fill=000" title="Deselect (d)">
     <img onclick="invertSelect()" src="https://s.svgbox.net/materialui.svg?ic=invert_colors&fill=000" title="Invert Select (i)">
     <img onclick="rotate()" src="https://s.svgbox.net/materialui.svg?ic=rotate_right&fill=000" title="Rotate Map (r)">
+    <img onclick="preview()" src="https://s.svgbox.net/hero-outline.svg?ic=eye&fill=000" title="Preview Map">
 </div>
 </div>
 <script>
+    document.querySelector('.custom-select-wrapper').addEventListener('click', function() {
+        for (const option of document.querySelectorAll(".custom-option")) {
+            option.classList.toggle('open');
+        }
+    })
+    for (const option of document.querySelectorAll(".custom-option")) {
+    option.addEventListener('click', function() {
+        if (!this.classList.contains('selected')) {
+            this.parentNode.querySelector('.custom-option.selected').classList.remove('selected');
+            this.classList.add('selected');
+        }
+    })
+}
+    window.addEventListener('click', function(e) {
+    const select = document.querySelector('.custom-select-wrapper')
+    if (!select.contains(e.target) && select.children[0].classList.contains("open")) {
+        for (const option of document.querySelectorAll(".custom-option")) {
+            option.classList.toggle('open');
+        }
+    }
+});
+    
+    
+    
     document.getElementById("main").style.filter = "blur(10px)"
     
     let nameInput = document.getElementById("name")
@@ -374,7 +564,7 @@
     
     
     let cursor = {x:0,y:0}
-    let origin = {x:canvas.width/tileSize.w/2,y:canvas.height/tileSize.h/2-worldSize.h/2};
+    let origin = {x:0,y:0};
     let world = [];
     
     let canEdit = 1;
@@ -391,7 +581,7 @@
     
     let name = "untitled"
     
-    let zoomSpeed = 0.02;
+    let zoomSpeed = 0.05;
     let invertZoom = 0;
     let isometricScale = 2;
     let panControl = 3;
@@ -412,7 +602,7 @@
             world=[]
         }
         
-        if(localStorage.getItem("isomapmaker_world")){
+        else if(localStorage.getItem("isomapmaker_world")){
             world = JSON.parse(localStorage.getItem("isomapmaker_world"))
             name = localStorage.getItem("isomapmaker_name")
             
@@ -486,6 +676,15 @@
                     highlighted = [x,y,currentTile.height];
                 }
                 
+                if(selected.length > 0){
+                    for(i = 0; i < selected.length; i++){
+                        if(selected[i][0] == x && selected[i][1] == y){
+                            ctx.strokeStyle = "red"
+                            ctx.lineWidth = 2
+                        }
+                    }
+                }
+                
                 ctx.closePath()
                 ctx.fill()
                 ctx.stroke()
@@ -499,6 +698,14 @@
                 
                 if (ctx.isPointInPath(cursor.x,cursor.y)) {
                     highlighted = [x,y,currentTile.height];
+                }
+                
+                if(selected.length > 0){
+                    for(i = 0; i < selected.length; i++){
+                        if(selected[i][0] == x && selected[i][1] == y){
+                            ctx.strokeStyle = "red"
+                        }
+                    }
                 }
                 
                 ctx.closePath()
@@ -516,6 +723,14 @@
                 
                 if (ctx.isPointInPath(cursor.x,cursor.y)) {
                     highlighted = [x,y,currentTile.height];
+                }
+                
+                if(selected.length > 0){
+                    for(i = 0; i < selected.length; i++){
+                        if(selected[i][0] == x && selected[i][1] == y){
+                            ctx.strokeStyle = "red"
+                        }
+                    }
                 }
                 
                 ctx.closePath()
@@ -543,35 +758,11 @@
             ctx.closePath()
             ctx.stroke()
         }
-        
-        if(selected.length > 0){
-            for(i = 0; i < selected.length; i++){
-                let pos;
-                
-                if(perspective == 0){
-                    pos = toScreen(selected[i][0],selected[i][1],selected[i][2]*tileSize.w);
-                }else{
-                    pos = toScreen(selected[i][0],selected[i][1],0);
-                }
-            
-                ctx.beginPath()
-                ctx.lineWidth = 2
-                ctx.strokeStyle = "red"
-                ctx.moveTo(pos.x,pos.y)
-                ctx.lineTo(pos.x+tileSize.w/2,pos.y+tileSize.h/2)
-                ctx.lineTo(pos.x,pos.y+tileSize.h)
-                ctx.lineTo(pos.x-tileSize.w/2,pos.y+tileSize.h/2)
-                ctx.closePath()
-                ctx.stroke()
-            }
-        }
-        
         stats()
         
         localStorage.setItem("isomapmaker_world",JSON.stringify(world))   
         localStorage.setItem('isomapmaker_name',name)
     }
-    
     
     canvas.onmousemove = (e) => {
         cursor.x = e.clientX-canvas.getBoundingClientRect().left;
@@ -713,11 +904,12 @@
         canvas.width = window.innerWidth
         canvas.height = window.innerHeight
         origin = {x:(canvas.width*0.8-80)/tileSize.w/2,y:canvas.height/tileSize.h/2-worldSize.h/2};
+        cursor = {x:(canvas.width*0.8-80)/2,y:canvas.height/2}
         drawWorld()
     }
-    
-    
+     
     generateWorld() 
+    loadSettings()
     onresize()
     
     function switchTile(type){
@@ -1004,6 +1196,57 @@
     }
     
     setInterval(loadPallet,500)
+    
+    function saveSettings(){
+        let settings = [zoomSpeed,invertZoom,document.getElementById('tbs').value,isometricScale,panControl,canvas.className];
+        
+        localStorage.setItem('isomapmaker_settings',JSON.stringify(settings))
+    }
+    
+    function loadSettings(reset){
+        let settings = JSON.parse(localStorage.getItem('isomapmaker_settings'))
+        
+        if(reset || !localStorage.getItem('isomapmaker_settings')){
+            settings = [0.05,0,'35',2,3,'dark']
+        }
+        
+        zoomSpeed = settings[0];
+        document.getElementById('zs').value = zoomSpeed*100;
+        
+        invertZoom = document.getElementById('iz').checked = settings[1];
+        
+        document.getElementById('tbs').value = settings[2];
+        document.getElementById('toolBar').style.width = settings[2]+'vw';
+        
+        isometricScale = document.getElementById('ca').value = settings[3];
+        
+        panControl = settings[4]
+        
+        for(let i=0;i<3;i++){
+            document.querySelector('.custom-select-wrapper').children[i].className='custom-option'
+        }
+        
+        if(panControl == 1){
+             document.querySelector('.custom-select-wrapper').children[2].className+=' selected'
+        }
+        if(panControl == 2){
+             document.querySelector('.custom-select-wrapper').children[1].className+=' selected'
+        }
+        if(panControl == 3){
+             document.querySelector('.custom-select-wrapper').children[0].className+=' selected'
+        }
+        
+        canvas.className = settings[5]
+        
+        if(canvas.className == "dark"){
+            document.getElementById('dm').checked = true; 
+        }else{
+            document.getElementById('dm').checked = false;
+        }
+        
+        switchPerspective(0)
+        saveSettings()
+    }
 </script>
     
 </html>
