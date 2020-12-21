@@ -36,7 +36,7 @@
         overflow: hidden;
     }
     
-    #settings img{
+    #settings img, #import img, #export img{
         width: 2vw;
         transition: .5s;
         cursor: pointer;
@@ -44,7 +44,7 @@
         margin: -10px -10px 0 0 ;
     }
     
-    #settings img:hover{
+    #settings img:hover, #import img:hover, #export img:hover{
         transform: rotate(-90deg) scale(1.1);
     }
     
@@ -433,16 +433,19 @@ input:checked + .slider:before {
         <button onclick="generateWorld(1)">Create Map</button>
     </div>
     <div id="export" style="display: none;">
-        <button>Image</button>
-        <button>RAW Data</button>
+        <img src="https://s.svgbox.net/materialui.svg?ic=clear&fill=000000" onclick="document.getElementById('main').style.filter ='';document.getElementById('shield').style.display = 'none'">
+        <br>
+        <button onclick="download()"><a download="" id="download">Image</a></button><br>
+        <button onclick="">RAW Data</button><br>
+        <button onclick="downloadRawData()"><a download="info.txt" id="downloadFile">Download</a></button> 
         <button>Upload to <a target="_blank">isomapmaker gallery</a></button>
     </div>
     <div id="import" style="display: none;">
+        <img src="https://s.svgbox.net/materialui.svg?ic=clear&fill=000000" onclick="document.getElementById('main').style.filter ='';document.getElementById('shield').style.display = 'none'">
         <p>Import</p>
+        <input type='file' accept=".isomap" onchange="readFile(this.files[0])">
         <br>
-        <p>Project</p><input type="checkbox">
-        <p>World</p><input type="checkbox" checked><br><br>
-        <textarea placeholder="[palette,world,isometricscale]"></textarea>
+        <button>import</button>
     </div>
 </div>
 <div id="main">
@@ -498,9 +501,9 @@ input:checked + .slider:before {
 <div id="menuBar">
     <button><img src="https://s.svgbox.net/materialui.svg?ic=settings&fill=000000" onclick="document.getElementById('settings').style.display = 'block'; document.getElementById('edit').style.display = 'none';" title="Settings"></button> 
     
-    <button><img src="https://s.svgbox.net/materialui.svg?ic=file_upload&fill=000000" title="Import Map"></button>
+    <button><img src="https://s.svgbox.net/materialui.svg?ic=file_upload&fill=000000" title="Export Map" onclick="document.getElementById('main').style.filter = 'blur(10px)'; document.getElementById('shield').style.display = document.getElementById('export').style.display = 'block'; document.getElementById('import').style.display = document.getElementById('create').style.display = 'none'"></button>
     
-    <button><a href="" download="" id="download"><img onclick="download()" src="https://s.svgbox.net/materialui.svg?ic=file_download&fill=000" title="Export Map"></a></button>
+    <button><img onclick="document.getElementById('main').style.filter = 'blur(10px)'; document.getElementById('shield').style.display = document.getElementById('import').style.display = 'block'; document.getElementById('export').style.display = document.getElementById('create').style.display = 'none'" src="https://s.svgbox.net/materialui.svg?ic=file_download&fill=000" title="Import Map"></button>
     
     <button><img src="https://s.svgbox.net/materialui.svg?ic=restore_page&fill=000000" onclick="localStorage.setItem('isomapmaker_world','');localStorage.setItem('isomapmaker_name','');location.reload()" title="New Map"></button>
 </div>
@@ -830,7 +833,7 @@ input:checked + .slider:before {
         drawWorld()
     }
     
-    canvas.onmouseup = function(){
+    canvas.onmouseup = () => {
         diff = 0;
         canSelect = 0;
         canvas.style.cursor = "auto"
@@ -900,17 +903,92 @@ input:checked + .slider:before {
                     
         }
     
-    window.onresize = function(){
+    canvas.onwheel = (e) => {
+        if(canChangeHeight){
+           if(e.deltaY > 0){
+                if(invertZoom){
+                    document.getElementById("height").value --;
+                }else{
+                    document.getElementById("height").value ++;
+                }
+                changeHeight()
+            }
+            
+            if(e.deltaY < 0){
+                if(invertZoom){
+                    document.getElementById("height").value ++;
+                }else{
+                    document.getElementById("height").value --;
+                }
+                changeHeight()
+            } 
+        }else{
+            if(e.deltaY > 0){
+                if(invertZoom){
+                    zoom(0)
+                    canvas.style.cursor = "zoom-out"
+                }else{
+                    zoom(1)
+                    canvas.style.cursor = "zoom-in"
+                }
+            }
+        
+            if(e.deltaY < 0){
+                if(invertZoom){
+                    zoom(1)
+                    canvas.style.cursor = "zoom-in"
+                }else{
+                    zoom(0)
+                    canvas.style.cursor = "zoom-out"
+                }
+            }
+        }
+        
+        e.preventDefault()
+    }
+    
+    window.onresize = () => {
         canvas.width = window.innerWidth
         canvas.height = window.innerHeight
         origin = {x:(canvas.width*0.8-80)/tileSize.w/2,y:canvas.height/tileSize.h/2-worldSize.h/2};
         cursor = {x:(canvas.width*0.8-80)/2,y:canvas.height/2}
         drawWorld()
     }
+    
+    function loadPallet(){
+        if(name != nameInput.value && nameInput.value != ""){
+            name = nameInput.value
+            drawWorld()
+        }
+        
+        if(name == ""){
+            name = "untitled"
+            drawWorld()
+        }
+        
+        if(localStorage.getItem("isomapmaker_pallet")){
+            if(JSON.stringify(tiles) == localStorage.getItem("isomapmaker_pallet")){
+                return;
+            }else{
+                tiles = JSON.parse(localStorage.getItem("isomapmaker_pallet"))
+            }
+        }
+        
+        let tileContainer = document.getElementById("tileContainer");
+        tileContainer.innerHTML = ""
+        
+        for(let i=tiles.length-1; i>=0; i--){
+            let t = document.createElement("button")
+            t.innerHTML = tiles[i].name+"<div style='background:"+tiles[i].sides[1]+";border:2px solid "+tiles[i].sides[2]+"; border-left:none;'></div><div style='background:"+tiles[i].top[0]+";border:2px solid "+tiles[i].top[1]+";'></div><div style='background:"+tiles[i].sides[0]+";border:2px solid "+tiles[i].sides[2]+"; border-right:none;'></div>"
+            t.setAttribute("onclick","switchTile("+i+")")
+            tileContainer.insertBefore(t,tileContainer.firstChild)
+        }
+    }
      
     generateWorld() 
     loadSettings()
     onresize()
+    loadPallet()
     
     function switchTile(type){
         for(let i=0;i<selected.length;i++){
@@ -1089,82 +1167,6 @@ input:checked + .slider:before {
         drawWorld()
     }
     
-    canvas.onwheel = (e) => {
-        if(canChangeHeight){
-           if(e.deltaY > 0){
-                if(invertZoom){
-                    document.getElementById("height").value --;
-                }else{
-                    document.getElementById("height").value ++;
-                }
-                changeHeight()
-            }
-            
-            if(e.deltaY < 0){
-                if(invertZoom){
-                    document.getElementById("height").value ++;
-                }else{
-                    document.getElementById("height").value --;
-                }
-                changeHeight()
-            } 
-        }else{
-            if(e.deltaY > 0){
-                if(invertZoom){
-                    zoom(0)
-                    canvas.style.cursor = "zoom-out"
-                }else{
-                    zoom(1)
-                    canvas.style.cursor = "zoom-in"
-                }
-            }
-        
-            if(e.deltaY < 0){
-                if(invertZoom){
-                    zoom(1)
-                    canvas.style.cursor = "zoom-in"
-                }else{
-                    zoom(0)
-                    canvas.style.cursor = "zoom-out"
-                }
-            }
-        }
-        
-        e.preventDefault()
-    }
-    
-    function loadPallet(){
-        if(name != nameInput.value && nameInput.value != ""){
-            name = nameInput.value
-            drawWorld()
-        }
-        
-        if(name == ""){
-            name = "untitled"
-            drawWorld()
-        }
-        
-        if(localStorage.getItem("isomapmaker_pallet")){
-            if(JSON.stringify(tiles) == localStorage.getItem("isomapmaker_pallet")){
-                return;
-            }else{
-                tiles = JSON.parse(localStorage.getItem("isomapmaker_pallet"))
-            }
-        }
-        
-        let tileContainer = document.getElementById("tileContainer");
-        tileContainer.innerHTML = ""
-        
-        for(let i=tiles.length-1; i>=0; i--){
-            let t = document.createElement("button")
-            t.innerHTML = tiles[i].name+"<div style='background:"+tiles[i].sides[1]+";border:2px solid "+tiles[i].sides[2]+"; border-left:none;'></div><div style='background:"+tiles[i].top[0]+";border:2px solid "+tiles[i].top[1]+";'></div><div style='background:"+tiles[i].sides[0]+";border:2px solid "+tiles[i].sides[2]+"; border-right:none;'></div>"
-            t.setAttribute("onclick","switchTile("+i+")")
-            tileContainer.insertBefore(t,tileContainer.firstChild)
-        }
-    }
-    
-    loadPallet()
-    
     function stats(){
         if(!hideStats){
             let x = canvas.width*0.8 - 155 - 80
@@ -1246,6 +1248,36 @@ input:checked + .slider:before {
         
         switchPerspective(0)
         saveSettings()
+    }
+    
+    function downloadRawData(){
+        let text = JSON.stringify([name,tiles,world,isometricScale]);
+        
+        let data = new Blob([text],{type:'text/plain'});
+        
+        let link = document.getElementById('downloadFile');
+        link.href = window.URL.createObjectURL(data)
+        link.download = name+'.isomap'
+    }
+    
+    function readFile(file) {
+        const reader = new FileReader();
+        reader.readAsText(file)
+        
+        reader.addEventListener('load', (event) => {
+            let data = JSON.parse(event.target.result);
+            nameInput.value = data[0]
+            localStorage.setItem('isomapmaker_pallet',JSON.stringify(data[1]))
+            world = data[2]
+            isometricScale = data[3]
+            
+            switchPerspective(0)
+            saveSettings()
+            loadSettings()
+            
+            document.getElementById("shield").style.display = "none";
+            document.getElementById("main").style.filter = ""
+        });
     }
 </script>
     
